@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uzak Destek — İndir</title>
+<style>
+:root{
+  --ud-bg:#15171b;--ud-surface:#1e2127;--ud-surface-2:#282c34;--ud-border:#363b44;
+  --ud-text:#eceef1;--ud-text-muted:#a0a7b0;--ud-accent:#5a8dff;--ud-on-accent:#15171b;
+  --ud-success:#4cc38a;--ud-warning:#e0a830;
+  --ud-font:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --ud-mono:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace;
+  --ud-radius:14px;--ud-shadow:0 12px 32px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--ud-bg);color:var(--ud-text);font:16px/1.6 var(--ud-font);
+  display:flex;align-items:center;justify-content:center;padding:24px}
+.card{width:100%;max-width:520px;background:var(--ud-surface);border:1px solid var(--ud-border);
+  border-radius:var(--ud-radius);box-shadow:var(--ud-shadow);padding:28px}
+h1{font-size:24px;margin:0 0 4px}
+.sub{color:var(--ud-text-muted);margin:0 0 20px}
+.dl{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:60px;
+  background:var(--ud-accent);color:var(--ud-on-accent);border:0;border-radius:10px;
+  font:700 18px var(--ud-font);text-decoration:none;cursor:pointer}
+.dl:hover{filter:brightness(1.05)}
+.os{text-align:center;color:var(--ud-text-muted);font-size:13px;margin:10px 0 24px}
+ol{margin:0;padding-left:22px}
+li{margin:10px 0}
+.k{font:700 15px var(--ud-mono);background:var(--ud-surface-2);padding:2px 8px;border-radius:6px}
+.note{margin-top:22px;padding:14px;background:var(--ud-surface-2);border-radius:10px;font-size:14px;color:var(--ud-text-muted)}
+.note b{color:var(--ud-text)}
+.warn{color:var(--ud-warning)}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Uzak Destek</h1>
+  <p class="sub">Bilgisayarınıza destek alabilmeniz için küçük bir program. Kurulum gerektirmez.</p>
+
+  <a class="dl" href="https://github.com/mycosmosshop/uzak-destek/releases/latest/download/UzakDestekAjan.exe" download>⬇ Programı İndir</a>
+  <div class="os">Windows • Kurulum yok • ~56 MB</div>
+
+  <ol>
+    <li>Yukarıdaki düğmeyle <b>UzakDestekAjan.exe</b>'yi indirin, <b>çift tıklayın.</b></li>
+    <li><span class="warn">"Windows PC'nizi korudu"</span> uyarısı çıkarsa: <b>Ek bilgi → Yine de çalıştır.</b></li>
+    <li>Açılan pencerede bir <b>9 haneli kod</b> görünür. Bu kodu <b>size yardım eden kişiye söyleyin.</b></li>
+    <li>Bağlanmak istediğinde <span class="k">E</span> tuşuna basın. Ekranınızda <b>"kontrol ediliyor"</b> yazısı görünür.</li>
+    <li>Bitince kırmızı çubuktaki <b>Durdur</b>'a basın; isterseniz dosyayı silebilirsiniz.</li>
+  </ol>
+
+  <div class="note">
+    <b>Güvenlik:</b> Bu program siz çalıştırıp <b>onaylamadan</b> hiç kimse bağlanamaz. Bağlantı boyunca ekranınızda sürekli bir uyarı görünür ve <b>tek tıkla durdurabilirsiniz.</b> Tanımadığınız kişiye bu kodu vermeyin.
+  </div>
+</div>
+</body>
+</html>
