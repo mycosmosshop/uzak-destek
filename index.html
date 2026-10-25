@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uzak Destek</title>
+<style>
+/* tasarım jetonları (design/tokens.css'ten; tek dosya için gömülü) */
+:root{
+  --ud-bg:#fff;--ud-surface:#f4f5f7;--ud-surface-2:#e9ebee;--ud-border:#dcdfe4;
+  --ud-border-input:#8a9099;--ud-text:#1a1d21;--ud-text-muted:#5a616b;
+  --ud-accent:#2f6feb;--ud-on-accent:#fff;--ud-danger:#c22f2f;--ud-success:#1d7a46;
+  --ud-warning:#8a5a00;--ud-online:#1d7a46;--ud-offline:#8a9099;
+  --ud-font-sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --ud-font-mono:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace;
+  --ud-radius-sm:6px;--ud-radius-md:10px;--ud-radius-lg:14px;--ud-radius-pill:999px;
+  --ud-shadow-pop:0 12px 32px rgba(16,24,40,.18);--ud-shadow-toolbar:0 2px 8px rgba(0,0,0,.28);
+}
+:root[data-theme="dark"]{
+  --ud-bg:#15171b;--ud-surface:#1e2127;--ud-surface-2:#282c34;--ud-border:#363b44;
+  --ud-border-input:#8a9099;--ud-text:#eceef1;--ud-text-muted:#a0a7b0;
+  --ud-accent:#5a8dff;--ud-on-accent:#15171b;--ud-danger:#ff6b6b;--ud-success:#4cc38a;
+  --ud-warning:#e0a830;--ud-online:#4cc38a;--ud-offline:#6b727c;--ud-shadow-pop:0 12px 32px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ud-bg);color:var(--ud-text);font:16px/1.5 var(--ud-font-sans);display:flex;flex-direction:column}
+header{height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--ud-border);flex:0 0 auto}
+header h1{font-size:16px;margin:0;font-weight:700}
+main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:16px}
+.btn{border:1px solid transparent;border-radius:var(--ud-radius-md);padding:0 16px;height:40px;font:600 14px var(--ud-font-sans);cursor:pointer}
+.btn:focus-visible{outline:2px solid var(--ud-accent);outline-offset:2px}
+.btn-primary{background:var(--ud-accent);color:var(--ud-on-accent)}
+.btn-danger{background:var(--ud-danger);color:#fff}
+.btn-ghost{background:transparent;color:var(--ud-text);border-color:var(--ud-border)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+/* S01 bağlan ekranı */
+#connect{display:flex;flex-direction:column;gap:16px;align-items:center;width:100%;max-width:360px}
+#connect label{align-self:flex-start;font-size:14px;color:var(--ud-text-muted)}
+#code{width:100%;height:56px;border:1px solid var(--ud-border-input);border-radius:var(--ud-radius-md);
+  background:var(--ud-bg);color:var(--ud-text);padding:0 16px;font:600 26px/1 var(--ud-font-mono);text-align:center;letter-spacing:.08em}
+#code:focus{outline:2px solid var(--ud-accent);outline-offset:1px;border-color:var(--ud-accent)}
+.status{font-size:14px;color:var(--ud-text-muted);min-height:20px;text-align:center}
+.status.err{color:var(--ud-danger)}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:var(--ud-radius-pill);padding:3px 10px;font:500 12px var(--ud-font-sans)}
+.b-ok{background:color-mix(in srgb,var(--ud-success) 18%,transparent);color:var(--ud-success)}
+.b-warn{background:color-mix(in srgb,var(--ud-warning) 18%,transparent);color:var(--ud-warning)}
+.b-acc{background:color-mix(in srgb,var(--ud-accent) 18%,transparent);color:var(--ud-accent)}
+/* S04 oturum ekranı */
+#session{display:none;flex-direction:column;width:100%;height:100%;gap:8px}
+#toolbar{display:flex;align-items:center;gap:8px;background:var(--ud-surface-2);border-radius:var(--ud-radius-md);
+  padding:6px 10px;box-shadow:var(--ud-shadow-toolbar);flex:0 0 auto}
+#toolbar .sp{flex:1}
+#screenWrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#000;border-radius:var(--ud-radius-md);overflow:hidden}
+#screen{max-width:100%;max-height:100%;cursor:crosshair;outline:none;image-rendering:auto}
+.hint{font-size:12px;color:var(--ud-text-muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Uzak Destek</h1>
+  <span class="hint">dikey dilim</span>
+  <span style="flex:1"></span>
+  <button class="btn btn-ghost" id="theme" style="height:32px">Tema</button>
+</header>
+
+<main>
+  <!-- S01: bağlan -->
+  <form id="connect" autocomplete="off">
+    <label for="code">Uzak adres (9 haneli kod)</label>
+    <input id="code" inputmode="numeric" maxlength="11" placeholder="123 456 789" aria-describedby="st">
+    <button class="btn btn-primary" type="submit" style="width:100%" id="go">Bağlan</button>
+    <div style="height:1px;background:var(--ud-border);margin:4px 0"></div>
+    <button class="btn btn-ghost" type="button" style="width:100%" id="mklink">Kurulumsuz destek bağlantısı oluştur</button>
+    <div class="hint" style="text-align:center">Karşı tarafa link gönder; tarayıcıda açıp ekranını paylaşsın (kurulum yok, yalnız görüntü).</div>
+    <div class="status" id="st" role="status" aria-live="polite">Ajandaki kodu girin.</div>
+  </form>
+
+  <!-- Destekçi: link üret + yayını izle -->
+  <div id="linkview" style="display:none;flex-direction:column;gap:12px;width:100%;max-width:520px">
+    <div style="font-weight:700;font-size:18px">Kurulumsuz destek bağlantısı</div>
+    <div class="hint">Bu bağlantıyı karşı tarafa gönder (WhatsApp, e-posta…). Açıp "Ekranı Paylaş" dediğinde ekranını burada görürsün.</div>
+    <div style="display:flex;gap:8px">
+      <input id="linkbox" readonly style="flex:1;height:44px;border:1px solid var(--ud-border-input);border-radius:var(--ud-radius-md);background:var(--ud-surface);color:var(--ud-text);padding:0 12px;font:13px var(--ud-font-mono)">
+      <button class="btn btn-primary" id="linkcopy" style="height:44px">Kopyala</button>
+    </div>
+    <span class="badge b-warn" id="linkstate" style="align-self:flex-start">Karşı taraf bekleniyor…</span>
+    <div style="background:#000;border-radius:var(--ud-radius-md);overflow:hidden;min-height:200px;display:flex;align-items:center;justify-content:center">
+      <video id="watch" autoplay playsinline style="max-width:100%;max-height:70vh;display:none"></video>
+      <span class="hint" id="watchhint" style="color:#8a9099">Görüntü bekleniyor</span>
+    </div>
+    <button class="btn btn-ghost" id="linkclose" style="align-self:flex-start">Kapat</button>
+  </div>
+
+  <!-- Yardım alan (link ile gelen): ekran paylaş -->
+  <div id="helper" style="display:none;flex-direction:column;gap:16px;width:100%;max-width:400px;text-align:center">
+    <div style="font-weight:700;font-size:22px">Ekranınızı paylaşarak destek alın</div>
+    <div class="hint">Aşağıdaki düğmeye basın ve paylaşmak istediğiniz ekranı seçin. Kurulum gerekmez. Destekçi yalnızca ekranınızı görür; bilgisayarınızı kontrol edemez.</div>
+    <button class="btn btn-primary" id="share" style="height:52px;font-size:16px">Ekranı Paylaş</button>
+    <span class="badge b-warn" id="helperstate" style="align-self:center;display:none">Paylaşılıyor…</span>
+    <div class="status err" id="helpererr" role="alert" aria-live="assertive"></div>
+    <button class="btn btn-ghost" id="sharestop" style="display:none">Paylaşımı durdur</button>
+  </div>
+
+  <!-- S02: parola / 2FA -->
+  <form id="auth" style="display:none;flex-direction:column;gap:12px;width:100%;max-width:340px">
+    <div style="font-weight:600;font-size:18px">Gözetimsiz erişim</div>
+    <div class="status" id="authNote" style="text-align:left">Bu cihaz parola istiyor.</div>
+    <label for="pw" style="font-size:14px;color:var(--ud-text-muted)">Parola</label>
+    <input id="pw" type="password" autocomplete="off"
+      style="height:44px;border:1px solid var(--ud-border-input);border-radius:var(--ud-radius-md);background:var(--ud-bg);color:var(--ud-text);padding:0 14px;font:16px var(--ud-font-sans)">
+    <div id="otpWrap" style="display:none;flex-direction:column;gap:6px">
+      <label for="otp" style="font-size:14px;color:var(--ud-text-muted)">2FA kodu (6 hane)</label>
+      <input id="otp" inputmode="numeric" maxlength="6" autocomplete="off"
+        style="height:44px;border:1px solid var(--ud-border-input);border-radius:var(--ud-radius-md);background:var(--ud-bg);color:var(--ud-text);padding:0 14px;font:600 18px var(--ud-font-mono);letter-spacing:.1em">
+    </div>
+    <button class="btn btn-primary" type="submit" style="width:100%">Giriş</button>
+    <div class="status err" id="authErr" role="alert" aria-live="assertive"></div>
+    <button class="btn btn-ghost" type="button" id="authCancel" style="width:100%">Vazgeç</button>
+  </form>
+
+  <!-- S04: oturum -->
+  <div id="session">
+    <div id="toolbar">
+      <span class="badge b-acc" id="encBadge">🔒 Kanal şifreli (TLS)</span>
+      <span class="badge b-warn" id="stateBadge">Bağlanıyor…</span>
+      <span class="hint" id="dim"></span>
+      <span class="sp"></span>
+      <span class="hint">Klavye için ekrana tıklayın</span>
+      <button class="btn btn-ghost" id="fs" style="height:32px">Tam ekran</button>
+      <button class="btn btn-danger" id="hang" style="height:32px">Bağlantıyı kes</button>
+    </div>
+    <div id="screenWrap">
+      <canvas id="screen" tabindex="0" aria-label="Uzak ekran"></canvas>
+    </div>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const cfg = window.UD_CONFIG || {};
+const $ = s => document.querySelector(s);
+const st = $('#st');
+let ch = null, sb = null, connected = false;
+let cpc = null, cdc = null; // kontrol modu WebRTC (ajan→panel kare, panel→ajan girdi)
+function iceGatheringDone(p){ return new Promise(res=>{ if(p.iceGatheringState==='complete') return res(); const f=()=>{ if(p.iceGatheringState==='complete'){ p.removeEventListener('icegatheringstatechange',f); res(); } }; p.addEventListener('icegatheringstatechange',f); setTimeout(res,4000); }); }
+
+// --- Kurulumsuz destek (WebRTC ekran paylaşımı, link ile) ---
+// TURN kimliği Ekip İletişim Apps Script ucundan alınır (Cloudflare, 6 saat); alınamazsa STUN.
+const DOSYA_URL = 'https://script.google.com/macros/s/AKfycbwbifiyemlR4HeYOOfmG76_iYxJDQ6wtVBfXcNQrQK7ODAr6AS7ApkY1L-kZ6x2H8s-9w/exec';
+const STUN = [{ urls: 'stun:stun.l.google.com:19302' }];
+async function iceAl(oda){
+  try{
+    const k = JSON.parse(sessionStorage.getItem('ud_ice')||'null');
+    if(k && k.son > Date.now()) return k.sunucular;
+    const y = await fetch(DOSYA_URL,{method:'POST',body:JSON.stringify({islem:'ice',oda}),signal:AbortSignal.timeout(8000)});
+    const j = await y.json();
+    if(!j.ok || !j.iceServers) throw 0;
+    sessionStorage.setItem('ud_ice',JSON.stringify({sunucular:j.iceServers,son:Date.now()+5*3600e3}));
+    return j.iceServers;
+  }catch(e){ return STUN; }
+}
+function sbClient(){ if(!sb) sb = supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {realtime:{params:{eventsPerSecond:20}}}); return sb; }
+function yeniKod(){ return String(Math.floor(100000000+Math.random()*900000000)); }
+
+$('#theme').onclick = () => {
+  const r = document.documentElement;
+  r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+};
+
+function setStatus(msg, err) { st.textContent = msg; st.classList.toggle('err', !!err); }
+
+// e.code -> Windows sanal tuş kodu (dikey dilim için yaygın tuşlar)
+const EXT = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Home','End','PageUp','PageDown','Insert','Delete','NumpadEnter','ControlRight','AltRight']);
+function vkFromCode(code){
+  if(/^Key[A-Z]$/.test(code)) return code.charCodeAt(3);
+  if(/^Digit[0-9]$/.test(code)) return code.charCodeAt(5);
+  if(/^Numpad[0-9]$/.test(code)) return 0x60 + (+code.slice(6));
+  const m={Enter:0x0D,NumpadEnter:0x0D,Space:0x20,Backspace:0x08,Tab:0x09,Escape:0x1B,
+    ShiftLeft:0xA0,ShiftRight:0xA1,ControlLeft:0xA2,ControlRight:0xA3,AltLeft:0xA4,AltRight:0xA5,
+    CapsLock:0x14,ArrowUp:0x26,ArrowDown:0x28,ArrowLeft:0x25,ArrowRight:0x27,
+    Home:0x24,End:0x23,PageUp:0x21,PageDown:0x22,Insert:0x2D,Delete:0x2E,
+    Minus:0xBD,Equal:0xBB,BracketLeft:0xDB,BracketRight:0xDD,Backslash:0xDC,
+    Semicolon:0xBA,Quote:0xDE,Backquote:0xC0,Comma:0xBC,Period:0xBE,Slash:0xBF,
+    MetaLeft:0x5B,MetaRight:0x5C,
+    F1:0x70,F2:0x71,F3:0x72,F4:0x73,F5:0x74,F6:0x75,F7:0x76,F8:0x77,F9:0x78,F10:0x79,F11:0x7A,F12:0x7B};
+  return m[code]||0;
+}
+
+const canvas = $('#screen'), ctx = canvas.getContext('2d');
+const img = new Image();
+let haveSize = false;
+
+function drawFrame(p){
+  img.onload = () => {
+    if(canvas.width!==p.w||canvas.height!==p.h){ canvas.width=p.w; canvas.height=p.h; }
+    ctx.drawImage(img,0,0);
+    if(!haveSize){ haveSize=true; $('#dim').textContent=`${p.w}×${p.h}`; }
+  };
+  img.src = 'data:image/jpeg;base64,'+p.jpg;
+}
+// WebRTC DataChannel'dan gelen ikili kare: [w:4][h:4][jpeg]
+function drawFrameBin(buf){
+  const dv = new DataView(buf);
+  const w = dv.getUint32(0), h = dv.getUint32(4);
+  const url = URL.createObjectURL(new Blob([new Uint8Array(buf, 8)], {type:'image/jpeg'}));
+  const im = new Image();
+  im.onload = ()=>{ if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;} ctx.drawImage(im,0,0); URL.revokeObjectURL(url); if(!haveSize){haveSize=true;$('#dim').textContent=`${w}×${h}`;} };
+  im.src = url;
+}
+
+function norm(e){
+  const r = canvas.getBoundingClientRect();
+  return { x: Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),
+           y: Math.min(1,Math.max(0,(e.clientY-r.top)/r.height)) };
+}
+function send(ev){
+  if(cdc && cdc.readyState==='open'){ try{ cdc.send(JSON.stringify(ev)); return; }catch(e){} }
+  if(ch) ch.send({type:'broadcast',event:'input',payload:ev});
+}
+
+let lastMove = 0;
+canvas.addEventListener('mousemove', e=>{ const t=performance.now(); if(t-lastMove<33)return; lastMove=t; const n=norm(e); send({t:'m',x:n.x,y:n.y}); });
+canvas.addEventListener('mousedown', e=>{ e.preventDefault(); canvas.focus(); const n=norm(e); send({t:'d',x:n.x,y:n.y,b:['left','middle','right'][e.button]||'left'}); });
+canvas.addEventListener('mouseup', e=>{ e.preventDefault(); const n=norm(e); send({t:'u',x:n.x,y:n.y,b:['left','middle','right'][e.button]||'left'}); });
+canvas.addEventListener('contextmenu', e=>e.preventDefault());
+canvas.addEventListener('wheel', e=>{ e.preventDefault(); const n=norm(e); send({t:'w',x:n.x,y:n.y,delta:-Math.sign(e.deltaY)*120}); }, {passive:false});
+canvas.addEventListener('keydown', e=>{ e.preventDefault(); const vk=vkFromCode(e.code); if(vk) send({t:'k',vk,down:true,ext:EXT.has(e.code)}); });
+canvas.addEventListener('keyup', e=>{ e.preventDefault(); const vk=vkFromCode(e.code); if(vk) send({t:'k',vk,down:false,ext:EXT.has(e.code)}); });
+
+$('#fs').onclick = ()=> $('#screenWrap').requestFullscreen?.();
+$('#hang').onclick = ()=> hangUp();
+
+function hide(...ids){ ids.forEach(i=>$(i).style.display='none'); }
+function showSession(){ hide('#connect','#auth'); $('#session').style.display='flex'; canvas.focus(); }
+function showConnect(){ hide('#session','#auth'); $('#connect').style.display='flex'; }
+function showAuth(twofa){
+  hide('#connect','#session'); $('#auth').style.display='flex';
+  $('#otpWrap').style.display = twofa ? 'flex' : 'none';
+  $('#authErr').textContent=''; $('#pw').value=''; $('#otp').value=''; $('#pw').focus();
+}
+$('#authCancel').onclick = ()=> hangUp();
+$('#auth').addEventListener('submit', e=>{
+  e.preventDefault();
+  if(ch) ch.send({type:'broadcast',event:'auth',payload:{pw:$('#pw').value, otp:$('#otp').value}});
+  $('#authErr').textContent='Doğrulanıyor…'; $('#authErr').classList.remove('err');
+});
+
+function hangUp(){
+  if(ch){ try{ ch.send({type:'broadcast',event:'bye',payload:{}}); }catch{} sb.removeChannel(ch); ch=null; }
+  try{ cdc&&cdc.close(); }catch(e){} try{ cpc&&cpc.close(); }catch(e){} cpc=null; cdc=null;
+  connected=false; haveSize=false; $('#go').disabled=false; showConnect(); setStatus('Bağlantı kesildi.');
+}
+
+$('#connect').addEventListener('submit', async e=>{
+  e.preventDefault();
+  if(!cfg.supabaseUrl || cfg.supabaseUrl.includes('PROJE')){ setStatus('config.js doldurulmamış.',true); return; }
+  const code=$('#code').value.replace(/\D/g,'');
+  if(code.length!==9){ setStatus('Kod 9 haneli olmalı.',true); return; }
+  $('#go').disabled=true; setStatus('Bağlanılıyor…');
+
+  if(!sb) sb = supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {realtime:{params:{eventsPerSecond:30}}});
+  ch = sb.channel('ud-cagri:'+code, {config:{broadcast:{self:false}}});
+  ch.on('broadcast',{event:'frame'}, m=>drawFrame(m.payload));
+  ch.on('broadcast',{event:'rtc-offer'}, async m=>{
+    try{
+      const ice = await iceAl(code);
+      cpc = new RTCPeerConnection({iceServers: ice});
+      cpc.ondatachannel = e=>{
+        cdc = e.channel; cdc.binaryType='arraybuffer';
+        cdc.onmessage = ev=>{ if(typeof ev.data!=='string') drawFrameBin(ev.data); };
+        cdc.onopen = ()=>{ $('#encBadge').textContent='🔒 Doğrudan bağlantı (WebRTC)'; };
+      };
+      await cpc.setRemoteDescription({type:'offer', sdp:m.payload.sdp});
+      await cpc.setLocalDescription(await cpc.createAnswer());
+      await iceGatheringDone(cpc);
+      ch.send({type:'broadcast',event:'rtc-answer',payload:{sdp:cpc.localDescription.sdp}});
+    }catch(e){ /* WebRTC kurulamazsa Realtime 'frame' zaten çiziliyor */ }
+  });
+  ch.on('broadcast',{event:'need-auth'}, m=>{ showAuth(!!m.payload.twofa); });
+  ch.on('broadcast',{event:'accepted'}, ()=>{ showSession(); $('#stateBadge').textContent='Bağlandı'; $('#stateBadge').className='badge b-ok'; setStatus(''); });
+  ch.on('broadcast',{event:'auth-fail'}, m=>{
+    const r=m.payload?.reason;
+    const err=$('#authErr'); err.classList.add('err');
+    err.textContent = r==='locked' ? 'Çok fazla yanlış deneme. Cihaz kilitlendi.'
+      : (typeof m.payload?.left==='number' ? `Parola/kod yanlış. Kalan deneme: ${m.payload.left}.` : 'Parola/kod yanlış.');
+  });
+  ch.on('broadcast',{event:'agent-ready'}, ()=>{});
+  ch.on('broadcast',{event:'bye'}, ()=>{ setStatus('Uzak taraf kapattı.'); hangUp(); });
+
+  ch.subscribe(async status=>{
+    if(status==='SUBSCRIBED'){
+      connected=true;
+      setStatus('Kanala bağlanıldı, onay bekleniyor…');
+      // 'accepted' gelirse oturum, 'need-auth' gelirse parola ekranı açılır
+      await ch.send({type:'broadcast',event:'hello',payload:{}});
+    } else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+      setStatus('Bağlanılamadı. Kodu ve bağlantıyı kontrol edin.',true); $('#go').disabled=false;
+    }
+  });
+});
+
+// ============ Kurulumsuz destek (WebRTC ekran paylaşımı) ============
+let dch=null, pc=null, dstream=null;
+const bekleyenIce=[];
+
+function kanalKur(kod){
+  const c = sbClient().channel('ud-destek:'+kod, {config:{broadcast:{self:false}}});
+  c.on('broadcast',{event:'ice'}, async m=>{
+    const cand=m.payload;
+    if(pc && pc.remoteDescription){ try{ await pc.addIceCandidate(cand); }catch(e){} }
+    else bekleyenIce.push(cand);
+  });
+  return c;
+}
+async function iceBosalt(){ for(const c of bekleyenIce.splice(0)){ try{ await pc.addIceCandidate(c); }catch(e){} } }
+function pcKur(kod){
+  pc.onicecandidate = e=>{ if(e.candidate) dch.send({type:'broadcast',event:'ice',payload:e.candidate}); };
+  pc.onconnectionstatechange = ()=>{ if(['failed','disconnected','closed'].includes(pc.connectionState)) {/* bırak */} };
+}
+function destekTemizle(){
+  try{ dstream&&dstream.getTracks().forEach(t=>t.stop()); }catch(e){}
+  try{ pc&&pc.close(); }catch(e){}
+  try{ dch&&sb.removeChannel(dch); }catch(e){}
+  pc=null; dch=null; dstream=null; bekleyenIce.length=0;
+}
+
+// ---- Destekçi: link üret, yayını izle ----
+$('#mklink').onclick = async ()=>{
+  if(!cfg.supabaseUrl || cfg.supabaseUrl.includes('PROJE')){ setStatus('config.js doldurulmamış.',true); return; }
+  const kod = yeniKod();
+  const link = location.origin + location.pathname + '?destek=' + kod;
+  $('#linkbox').value = link;
+  hide('#connect'); $('#linkview').style.display='flex';
+  const ice = await iceAl(kod);
+  dch = kanalKur(kod);
+  dch.on('broadcast',{event:'offer'}, async m=>{
+    pc = new RTCPeerConnection({iceServers:ice});
+    pcKur(kod);
+    pc.ontrack = e=>{
+      $('#watch').srcObject = e.streams[0];
+      $('#watch').style.display='block'; $('#watchhint').style.display='none';
+      $('#linkstate').textContent='Bağlı — ekran görüntüleniyor'; $('#linkstate').className='badge b-ok';
+    };
+    await pc.setRemoteDescription(m.payload);
+    await iceBosalt();
+    await pc.setLocalDescription(await pc.createAnswer());
+    dch.send({type:'broadcast',event:'answer',payload:pc.localDescription});
+  });
+  dch.on('broadcast',{event:'bye'}, ()=>{ $('#linkstate').textContent='Karşı taraf paylaşımı durdurdu'; $('#linkstate').className='badge b-warn'; $('#watch').style.display='none'; $('#watchhint').style.display='block'; });
+  dch.subscribe();
+};
+$('#linkcopy').onclick = ()=>{ navigator.clipboard.writeText($('#linkbox').value).then(()=>{ $('#linkcopy').textContent='Kopyalandı'; setTimeout(()=>$('#linkcopy').textContent='Kopyala',1500); }); };
+$('#linkclose').onclick = ()=>{ destekTemizle(); $('#linkview').style.display='none'; $('#connect').style.display='flex'; };
+
+// ---- Yardım alan: ?destek=<kod> ile gelen taraf ----
+const destekKod = new URLSearchParams(location.search).get('destek');
+if(destekKod){
+  document.querySelectorAll('#connect,#session,#auth,#linkview').forEach(e=>e.style.display='none');
+  $('#helper').style.display='flex';
+  dch = kanalKur(destekKod);
+  dch.on('broadcast',{event:'answer'}, async m=>{ if(pc){ await pc.setRemoteDescription(m.payload); await iceBosalt(); } });
+  dch.subscribe();
+  $('#share').onclick = async ()=>{
+    if(!cfg.supabaseUrl){ $('#helpererr').textContent='Yapılandırma eksik.'; return; }
+    try{ dstream = await navigator.mediaDevices.getDisplayMedia({video:true, audio:false}); }
+    catch(e){ $('#helpererr').textContent='Ekran paylaşımı iptal edildi ya da izin verilmedi.'; return; }
+    const ice = await iceAl(destekKod);
+    pc = new RTCPeerConnection({iceServers:ice});
+    pcKur(destekKod);
+    dstream.getTracks().forEach(t=>pc.addTrack(t, dstream));
+    dstream.getVideoTracks()[0].onended = ()=>{ dch.send({type:'broadcast',event:'bye',payload:{}}); durdur(); };
+    await pc.setLocalDescription(await pc.createOffer());
+    dch.send({type:'broadcast',event:'offer',payload:pc.localDescription});
+    $('#share').style.display='none'; $('#helperstate').style.display='inline-flex'; $('#sharestop').style.display='block';
+  };
+  const durdur = ()=>{ destekTemizle(); $('#helperstate').style.display='none'; $('#sharestop').style.display='none'; $('#share').style.display='block'; $('#share').textContent='Yeniden Paylaş'; };
+  $('#sharestop').onclick = ()=>{ try{ dch.send({type:'broadcast',event:'bye',payload:{}}); }catch(e){} durdur(); };
+}
+
+</script>
+</body>
+</html>
