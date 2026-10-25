@@ -213,14 +213,23 @@ function drawFrame(p){
   };
   img.src = 'data:image/jpeg;base64,'+p.jpg;
 }
-// WebRTC DataChannel'dan gelen ikili kare: [w:4][h:4][jpeg]
+// WebRTC DataChannel: parçalı kare [frameId:4][idx:2][toplam:2][w:2][h:2][veri]
+let rxId=-1, rxChunks=[], rxCount=0, rxW=0, rxH=0, rxGot=0;
 function drawFrameBin(buf){
   const dv = new DataView(buf);
-  const w = dv.getUint32(0), h = dv.getUint32(4);
-  const url = URL.createObjectURL(new Blob([new Uint8Array(buf, 8)], {type:'image/jpeg'}));
-  const im = new Image();
-  im.onload = ()=>{ if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;} ctx.drawImage(im,0,0); URL.revokeObjectURL(url); if(!haveSize){haveSize=true;$('#dim').textContent=`${w}×${h}`;} };
-  im.src = url;
+  const fid=dv.getUint32(0), idx=dv.getUint16(4), cnt=dv.getUint16(6), w=dv.getUint16(8), h=dv.getUint16(10);
+  const payload = new Uint8Array(buf, 12);
+  if(fid!==rxId){ rxId=fid; rxChunks=new Array(cnt); rxCount=cnt; rxW=w; rxH=h; rxGot=0; }
+  if(!rxChunks[idx]){ rxChunks[idx]=payload; rxGot++; }
+  if(rxGot===rxCount && rxCount>0){
+    let tot=0; for(const c of rxChunks) tot+=c.length;
+    const all=new Uint8Array(tot); let o=0; for(const c of rxChunks){ all.set(c,o); o+=c.length; }
+    const url=URL.createObjectURL(new Blob([all],{type:'image/jpeg'}));
+    const im=new Image();
+    im.onload=()=>{ if(canvas.width!==rxW||canvas.height!==rxH){canvas.width=rxW;canvas.height=rxH;} ctx.drawImage(im,0,0); URL.revokeObjectURL(url); if(!haveSize){haveSize=true;$('#dim').textContent=rxW+'×'+rxH;} };
+    im.src=url;
+    rxId=-1;
+  }
 }
 
 function norm(e){
