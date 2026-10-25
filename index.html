@@ -77,8 +77,7 @@ main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
 
     <div style="font-weight:700;font-size:16px">Karşı tarafa göndereceklerin</div>
     <div class="hint" style="margin-top:-6px"><b style="color:var(--ud-text)">Tam kontrol</b> (fare/klavye) için — karşı taraf indirip çalıştırsın, çıkan kodu sana söylesin:</div>
-    <button class="btn btn-ghost" type="button" style="width:100%" id="agentlinkcopy">📋 İndirme linkini kopyala (karşı tarafa gönder)</button>
-    <a href="https://mycosmosshop.github.io/uzak-destek/indir.html" target="_blank" class="hint" style="text-align:center;color:var(--ud-accent);text-decoration:none">indirme sayfasını aç →</a>
+    <button class="btn btn-ghost" type="button" style="width:100%" id="agentlinkcopy">📋 İndirme linkini göster (karşı tarafa gönder)</button>
     <div class="hint" style="margin-top:10px"><b style="color:var(--ud-text)">Sadece ekranını görmek</b> yeterliyse (kurulum/kontrol yok):</div>
     <button class="btn btn-ghost" type="button" style="width:100%" id="mklink">Ekran paylaşım linki oluştur</button>
   </form>
@@ -148,6 +147,19 @@ main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
     </div>
   </div>
 </main>
+
+<!-- İndirme linki modalı (panel içi; GitHub/yeni pencere açılmaz) -->
+<div id="linkmodal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);align-items:center;justify-content:center;z-index:50;padding:16px">
+  <div style="background:var(--ud-bg);border:1px solid var(--ud-border);border-radius:var(--ud-radius-lg);box-shadow:var(--ud-shadow-pop);padding:24px;max-width:460px;width:100%">
+    <div style="font-weight:700;font-size:18px;margin-bottom:6px">Karşı tarafa gönder</div>
+    <div class="hint" style="margin-bottom:14px">Bu linki karşı tarafa gönder (WhatsApp, e-posta…). Açınca programı indirir, çalıştırır, çıkan kodu sana söyler.</div>
+    <div style="display:flex;gap:8px">
+      <input id="dllink" readonly value="https://mycosmosshop.github.io/uzak-destek/indir.html" style="flex:1;height:46px;border:1px solid var(--ud-border-input);border-radius:var(--ud-radius-md);background:var(--ud-surface);color:var(--ud-text);padding:0 12px;font:13px var(--ud-font-mono)">
+      <button class="btn btn-primary" id="dlcopy" style="height:46px">Kopyala</button>
+    </div>
+    <button class="btn btn-ghost" id="dlclose" style="width:100%;margin-top:16px">Kapat</button>
+  </div>
+</div>
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -404,7 +416,10 @@ $('#mklink').onclick = async ()=>{
   dch.subscribe();
 };
 $('#linkcopy').onclick = ()=>{ navigator.clipboard.writeText($('#linkbox').value).then(()=>{ $('#linkcopy').textContent='Kopyalandı'; setTimeout(()=>$('#linkcopy').textContent='Kopyala',1500); }); };
-$('#agentlinkcopy').onclick = ()=>{ navigator.clipboard.writeText('https://mycosmosshop.github.io/uzak-destek/indir.html').then(()=>{ $('#agentlinkcopy').textContent='✓ Kopyalandı — karşı tarafa yapıştır'; setTimeout(()=>$('#agentlinkcopy').textContent='📋 İndirme linkini kopyala (karşı tarafa gönder)',1800); }); };
+$('#agentlinkcopy').onclick = ()=>{ $('#linkmodal').style.display='flex'; $('#dllink').focus(); $('#dllink').select(); };
+$('#dlcopy').onclick = ()=>{ navigator.clipboard.writeText($('#dllink').value).then(()=>{ $('#dlcopy').textContent='Kopyalandı'; setTimeout(()=>$('#dlcopy').textContent='Kopyala',1500); }); };
+$('#dlclose').onclick = ()=>{ $('#linkmodal').style.display='none'; };
+$('#linkmodal').onclick = e=>{ if(e.target.id==='linkmodal') $('#linkmodal').style.display='none'; };
 $('#linkclose').onclick = ()=>{ destekTemizle(); $('#linkview').style.display='none'; $('#connect').style.display='flex'; };
 
 // ---- Yardım alan: ?destek=<kod> ile gelen taraf ----
