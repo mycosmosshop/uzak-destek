@@ -320,6 +320,7 @@ $('#connect').addEventListener('submit', async e=>{
     }
   });
   ch.on('broadcast',{event:'file-done'}, m=>{ $('#stateBadge').textContent='Kaydedildi: '+((m.payload&&m.payload.name)||'dosya'); $('#stateBadge').className='badge b-ok'; });
+  ch.on('broadcast',{event:'rejected'}, ()=>{ setStatus('Karşı taraf bağlantıyı reddetti.',true); hangUp(); });
   ch.on('broadcast',{event:'need-auth'}, m=>{ showAuth(!!m.payload.twofa); });
   ch.on('broadcast',{event:'accepted'}, ()=>{ showSession(); $('#stateBadge').textContent='Bağlandı'; $('#stateBadge').className='badge b-ok'; setStatus(''); });
   ch.on('broadcast',{event:'auth-fail'}, m=>{
