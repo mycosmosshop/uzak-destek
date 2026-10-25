@@ -77,16 +77,18 @@ main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
   </form>
 
   <!-- Destekçi: link üret + yayını izle -->
-  <div id="linkview" style="display:none;flex-direction:column;gap:12px;width:100%;max-width:520px">
-    <div style="font-weight:700;font-size:18px">Kurulumsuz destek bağlantısı</div>
-    <div class="hint">Bu bağlantıyı karşı tarafa gönder (WhatsApp, e-posta…). Açıp "Ekranı Paylaş" dediğinde ekranını burada görürsün.</div>
-    <div style="display:flex;gap:8px">
-      <input id="linkbox" readonly style="flex:1;height:44px;border:1px solid var(--ud-border-input);border-radius:var(--ud-radius-md);background:var(--ud-surface);color:var(--ud-text);padding:0 12px;font:13px var(--ud-font-mono)">
-      <button class="btn btn-primary" id="linkcopy" style="height:44px">Kopyala</button>
+  <div id="linkview" style="display:none;flex-direction:column;gap:12px;width:100%;max-width:min(1400px,97vw)">
+    <div style="max-width:620px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-weight:700;font-size:18px">Kurulumsuz destek bağlantısı</div>
+      <div class="hint">Bu bağlantıyı karşı tarafa gönder (WhatsApp, e-posta…). Açıp "Ekranı Paylaş" dediğinde ekranını burada görürsün. (Bu mod yalnız görüntü; fare/klavye kontrolü için ajan uygulaması gerekir.)</div>
+      <div style="display:flex;gap:8px">
+        <input id="linkbox" readonly style="flex:1;height:44px;border:1px solid var(--ud-border-input);border-radius:var(--ud-radius-md);background:var(--ud-surface);color:var(--ud-text);padding:0 12px;font:13px var(--ud-font-mono)">
+        <button class="btn btn-primary" id="linkcopy" style="height:44px">Kopyala</button>
+      </div>
+      <span class="badge b-warn" id="linkstate" style="align-self:flex-start">Karşı taraf bekleniyor…</span>
     </div>
-    <span class="badge b-warn" id="linkstate" style="align-self:flex-start">Karşı taraf bekleniyor…</span>
-    <div style="background:#000;border-radius:var(--ud-radius-md);overflow:hidden;min-height:200px;display:flex;align-items:center;justify-content:center">
-      <video id="watch" autoplay playsinline style="max-width:100%;max-height:70vh;display:none"></video>
+    <div style="background:#000;border-radius:var(--ud-radius-md);overflow:hidden;min-height:260px;display:flex;align-items:center;justify-content:center">
+      <video id="watch" autoplay playsinline style="width:100%;max-height:82vh;object-fit:contain;display:none"></video>
       <span class="hint" id="watchhint" style="color:#8a9099">Görüntü bekleniyor</span>
     </div>
     <button class="btn btn-ghost" id="linkclose" style="align-self:flex-start">Kapat</button>
