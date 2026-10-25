@@ -329,9 +329,15 @@ $('#connect').addEventListener('submit', async e=>{
       const ice = await iceAl(code);
       cpc = new RTCPeerConnection({iceServers: ice});
       cpc.ondatachannel = e=>{
-        cdc = e.channel; cdc.binaryType='arraybuffer';
-        cdc.onmessage = ev=>{ if(typeof ev.data!=='string') drawFrameBin(ev.data); };
-        cdc.onopen = ()=>{ $('#encBadge').textContent='🔒 Doğrudan bağlantı (WebRTC)'; };
+        const dc = e.channel; dc.binaryType='arraybuffer';
+        if(dc.label==='udv'){
+          // video kanalı (sırasız/güvenilmez): kareler
+          dc.onmessage = ev=>{ if(typeof ev.data!=='string') drawFrameBin(ev.data); };
+          dc.onopen = ()=>{ $('#encBadge').textContent='🔒 Doğrudan bağlantı (WebRTC)'; };
+        } else {
+          // kontrol kanalı (güvenilir): girdi + dosya buradan gider
+          cdc = dc;
+        }
       };
       await cpc.setRemoteDescription({type:'offer', sdp:m.payload.sdp});
       await cpc.setLocalDescription(await cpc.createAnswer());
