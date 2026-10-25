@@ -137,8 +137,9 @@ main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
       <span class="sp"></span>
       <span class="hint">Klavye için ekrana tıklayın</span>
       <select id="qsel" title="Görüntü kalitesi / hız" style="height:32px;background:var(--ud-surface-2);color:var(--ud-text);border:1px solid var(--ud-border);border-radius:var(--ud-radius-sm);font:13px var(--ud-font-sans);padding:0 6px">
-        <option value="fast">Hız</option>
-        <option value="bal" selected>Denge</option>
+        <option value="ultra">En Hızlı</option>
+        <option value="fast" selected>Hız</option>
+        <option value="bal">Denge</option>
         <option value="sharp">Netlik</option>
       </select>
       <input type="file" id="fileinp" style="display:none">
@@ -269,7 +270,7 @@ canvas.addEventListener('keydown', e=>{ e.preventDefault(); const vk=vkFromCode(
 canvas.addEventListener('keyup', e=>{ e.preventDefault(); const vk=vkFromCode(e.code); if(vk) send({t:'k',vk,down:false,ext:EXT.has(e.code)}); });
 
 $('#clipbtn').onclick = ()=>{ const t=prompt('Karşı tarafın panosuna gönderilecek metin:'); if(t) send({t:'clip',text:t}); };
-$('#qsel').onchange = ()=>{ const p={fast:[1000,40],bal:[1280,52],sharp:[1600,62]}[$('#qsel').value]; if(p) send({t:'q',w:p[0],q:p[1]}); };
+$('#qsel').onchange = ()=>{ const p={ultra:[800,32],fast:[1000,40],bal:[1280,52],sharp:[1600,62]}[$('#qsel').value]; if(p) send({t:'q',w:p[0],q:p[1]}); };
 // Dosya gönderme — yalnız WebRTC DataChannel üzerinden (Supabase'e yazılmaz)
 $('#filebtn').onclick = ()=>{
   if(!cdc || cdc.readyState!=='open'){ alert('Dosya göndermek için doğrudan bağlantı (WebRTC) gerekir. Rozet "Doğrudan bağlantı (WebRTC)" değilse çalışmaz.'); return; }
@@ -349,7 +350,7 @@ $('#connect').addEventListener('submit', async e=>{
   ch.on('broadcast',{event:'file-done'}, m=>{ $('#stateBadge').textContent='Kaydedildi: '+((m.payload&&m.payload.name)||'dosya'); $('#stateBadge').className='badge b-ok'; });
   ch.on('broadcast',{event:'rejected'}, ()=>{ setStatus('Karşı taraf bağlantıyı reddetti.',true); hangUp(); });
   ch.on('broadcast',{event:'need-auth'}, m=>{ showAuth(!!m.payload.twofa); });
-  ch.on('broadcast',{event:'accepted'}, ()=>{ showSession(); $('#stateBadge').textContent='Bağlandı'; $('#stateBadge').className='badge b-ok'; setStatus(''); });
+  ch.on('broadcast',{event:'accepted'}, ()=>{ showSession(); $('#stateBadge').textContent='Bağlandı'; $('#stateBadge').className='badge b-ok'; setStatus(''); const p0={ultra:[800,32],fast:[1000,40],bal:[1280,52],sharp:[1600,62]}[$('#qsel').value]; if(p0) setTimeout(()=>send({t:'q',w:p0[0],q:p0[1]}),800); });
   ch.on('broadcast',{event:'auth-fail'}, m=>{
     const r=m.payload?.reason;
     const err=$('#authErr'); err.classList.add('err');
