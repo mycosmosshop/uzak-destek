@@ -127,8 +127,10 @@ main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
       <span class="badge b-acc" id="encBadge">🔒 Kanal şifreli (TLS)</span>
       <span class="badge b-warn" id="stateBadge">Bağlanıyor…</span>
       <span class="hint" id="dim"></span>
+      <span id="monbtns" style="display:flex;gap:4px"></span>
       <span class="sp"></span>
       <span class="hint">Klavye için ekrana tıklayın</span>
+      <button class="btn btn-ghost" id="clipbtn" style="height:32px">Pano gönder</button>
       <button class="btn btn-ghost" id="fs" style="height:32px">Tam ekran</button>
       <button class="btn btn-danger" id="hang" style="height:32px">Bağlantıyı kes</button>
     </div>
@@ -231,6 +233,7 @@ canvas.addEventListener('wheel', e=>{ e.preventDefault(); const n=norm(e); send(
 canvas.addEventListener('keydown', e=>{ e.preventDefault(); const vk=vkFromCode(e.code); if(vk) send({t:'k',vk,down:true,ext:EXT.has(e.code)}); });
 canvas.addEventListener('keyup', e=>{ e.preventDefault(); const vk=vkFromCode(e.code); if(vk) send({t:'k',vk,down:false,ext:EXT.has(e.code)}); });
 
+$('#clipbtn').onclick = ()=>{ const t=prompt('Karşı tarafın panosuna gönderilecek metin:'); if(t) send({t:'clip',text:t}); };
 $('#fs').onclick = ()=> $('#screenWrap').requestFullscreen?.();
 $('#hang').onclick = ()=> hangUp();
 
@@ -252,6 +255,7 @@ $('#auth').addEventListener('submit', e=>{
 function hangUp(){
   if(ch){ try{ ch.send({type:'broadcast',event:'bye',payload:{}}); }catch{} sb.removeChannel(ch); ch=null; }
   try{ cdc&&cdc.close(); }catch(e){} try{ cpc&&cpc.close(); }catch(e){} cpc=null; cdc=null;
+  $('#monbtns').innerHTML='';
   connected=false; haveSize=false; $('#go').disabled=false; showConnect(); setStatus('Bağlantı kesildi.');
 }
 
@@ -279,6 +283,14 @@ $('#connect').addEventListener('submit', async e=>{
       await iceGatheringDone(cpc);
       ch.send({type:'broadcast',event:'rtc-answer',payload:{sdp:cpc.localDescription.sdp}});
     }catch(e){ /* WebRTC kurulamazsa Realtime 'frame' zaten çiziliyor */ }
+  });
+  ch.on('broadcast',{event:'meta'}, m=>{
+    const n=(m.payload&&m.payload.monitors)||1; const box=$('#monbtns'); box.innerHTML='';
+    if(n>1){
+      const mk=(label,i)=>{ const b=document.createElement('button'); b.className='btn btn-ghost'; b.style.height='32px'; b.style.padding='0 10px'; b.textContent=label; b.onclick=()=>send({t:'mon',i}); return b; };
+      box.appendChild(mk('Hepsi',-1));
+      for(let i=0;i<n;i++) box.appendChild(mk('Ekran '+(i+1),i));
+    }
   });
   ch.on('broadcast',{event:'need-auth'}, m=>{ showAuth(!!m.payload.twofa); });
   ch.on('broadcast',{event:'accepted'}, ()=>{ showSession(); $('#stateBadge').textContent='Bağlandı'; $('#stateBadge').className='badge b-ok'; setStatus(''); });
