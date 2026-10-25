@@ -130,6 +130,8 @@ main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
       <span id="monbtns" style="display:flex;gap:4px"></span>
       <span class="sp"></span>
       <span class="hint">Klavye için ekrana tıklayın</span>
+      <input type="file" id="fileinp" style="display:none">
+      <button class="btn btn-ghost" id="filebtn" style="height:32px">Dosya gönder</button>
       <button class="btn btn-ghost" id="clipbtn" style="height:32px">Pano gönder</button>
       <button class="btn btn-ghost" id="fs" style="height:32px">Tam ekran</button>
       <button class="btn btn-danger" id="hang" style="height:32px">Bağlantıyı kes</button>
@@ -234,6 +236,24 @@ canvas.addEventListener('keydown', e=>{ e.preventDefault(); const vk=vkFromCode(
 canvas.addEventListener('keyup', e=>{ e.preventDefault(); const vk=vkFromCode(e.code); if(vk) send({t:'k',vk,down:false,ext:EXT.has(e.code)}); });
 
 $('#clipbtn').onclick = ()=>{ const t=prompt('Karşı tarafın panosuna gönderilecek metin:'); if(t) send({t:'clip',text:t}); };
+// Dosya gönderme — yalnız WebRTC DataChannel üzerinden (Supabase'e yazılmaz)
+$('#filebtn').onclick = ()=>{
+  if(!cdc || cdc.readyState!=='open'){ alert('Dosya göndermek için doğrudan bağlantı (WebRTC) gerekir. Rozet "Doğrudan bağlantı (WebRTC)" değilse çalışmaz.'); return; }
+  $('#fileinp').click();
+};
+$('#fileinp').onchange = async e=>{ const f=e.target.files[0]; e.target.value=''; if(f) await sendFile(f); };
+async function sendFile(f){
+  if(!cdc || cdc.readyState!=='open') return;
+  cdc.send(JSON.stringify({t:'file-begin', name:f.name, size:f.size}));
+  const buf = await f.arrayBuffer(); const CH=16*1024; let off=0;
+  while(off<buf.byteLength){
+    if(cdc.bufferedAmount > 4*1024*1024){ await new Promise(r=>setTimeout(r,20)); continue; }
+    cdc.send(buf.slice(off, off+CH)); off+=CH;
+    $('#stateBadge').textContent='Dosya %'+Math.floor(100*off/buf.byteLength); $('#stateBadge').className='badge b-warn';
+  }
+  cdc.send(JSON.stringify({t:'file-end'}));
+  $('#stateBadge').textContent='Dosya gönderildi'; $('#stateBadge').className='badge b-ok';
+}
 $('#fs').onclick = ()=> $('#screenWrap').requestFullscreen?.();
 $('#hang').onclick = ()=> hangUp();
 
@@ -292,6 +312,7 @@ $('#connect').addEventListener('submit', async e=>{
       for(let i=0;i<n;i++) box.appendChild(mk('Ekran '+(i+1),i));
     }
   });
+  ch.on('broadcast',{event:'file-done'}, m=>{ $('#stateBadge').textContent='Kaydedildi: '+((m.payload&&m.payload.name)||'dosya'); $('#stateBadge').className='badge b-ok'; });
   ch.on('broadcast',{event:'need-auth'}, m=>{ showAuth(!!m.payload.twofa); });
   ch.on('broadcast',{event:'accepted'}, ()=>{ showSession(); $('#stateBadge').textContent='Bağlandı'; $('#stateBadge').className='badge b-ok'; setStatus(''); });
   ch.on('broadcast',{event:'auth-fail'}, m=>{
