@@ -334,7 +334,7 @@ $('#connect').addEventListener('submit', async e=>{
   ch.subscribe(async status=>{
     if(status==='SUBSCRIBED'){
       connected=true;
-      setStatus('Kanala bağlanıldı, onay bekleniyor…');
+      setStatus('Bağlandı. Şimdi KARŞI TARAFTAKİ kişi, ajan penceresinde E yazıp Enter’a bassın.');
       // 'accepted' gelirse oturum, 'need-auth' gelirse parola ekranı açılır
       await ch.send({type:'broadcast',event:'hello',payload:{}});
     } else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
