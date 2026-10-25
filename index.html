@@ -136,6 +136,11 @@ main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
       <span id="monbtns" style="display:flex;gap:4px"></span>
       <span class="sp"></span>
       <span class="hint">Klavye için ekrana tıklayın</span>
+      <select id="qsel" title="Görüntü kalitesi / hız" style="height:32px;background:var(--ud-surface-2);color:var(--ud-text);border:1px solid var(--ud-border);border-radius:var(--ud-radius-sm);font:13px var(--ud-font-sans);padding:0 6px">
+        <option value="fast">Hız</option>
+        <option value="bal" selected>Denge</option>
+        <option value="sharp">Netlik</option>
+      </select>
       <input type="file" id="fileinp" style="display:none">
       <button class="btn btn-ghost" id="filebtn" style="height:32px">Dosya gönder</button>
       <button class="btn btn-ghost" id="clipbtn" style="height:32px">Pano gönder</button>
@@ -264,6 +269,7 @@ canvas.addEventListener('keydown', e=>{ e.preventDefault(); const vk=vkFromCode(
 canvas.addEventListener('keyup', e=>{ e.preventDefault(); const vk=vkFromCode(e.code); if(vk) send({t:'k',vk,down:false,ext:EXT.has(e.code)}); });
 
 $('#clipbtn').onclick = ()=>{ const t=prompt('Karşı tarafın panosuna gönderilecek metin:'); if(t) send({t:'clip',text:t}); };
+$('#qsel').onchange = ()=>{ const p={fast:[1000,40],bal:[1280,52],sharp:[1600,62]}[$('#qsel').value]; if(p) send({t:'q',w:p[0],q:p[1]}); };
 // Dosya gönderme — yalnız WebRTC DataChannel üzerinden (Supabase'e yazılmaz)
 $('#filebtn').onclick = ()=>{
   if(!cdc || cdc.readyState!=='open'){ alert('Dosya göndermek için doğrudan bağlantı (WebRTC) gerekir. Rozet "Doğrudan bağlantı (WebRTC)" değilse çalışmaz.'); return; }
