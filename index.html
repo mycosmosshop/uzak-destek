@@ -67,17 +67,20 @@ main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
 <main>
   <!-- S01: bağlan -->
   <form id="connect" autocomplete="off">
-    <label for="code">Uzak adres (9 haneli kod)</label>
-    <input id="code" inputmode="numeric" maxlength="11" placeholder="123 456 789" aria-describedby="st">
+    <div style="font-weight:700;font-size:16px">Karşıdaki bilgisayara bağlan</div>
+    <label for="code" class="hint" style="margin-top:-6px">Karşı taraftaki pencerede çıkan <b style="color:var(--ud-text)">9 haneli kodu</b> yaz</label>
+    <input id="code" inputmode="numeric" maxlength="11" placeholder="örn. 281 153 562" aria-describedby="st">
     <button class="btn btn-primary" type="submit" style="width:100%" id="go">Bağlan</button>
-    <div style="height:1px;background:var(--ud-border);margin:4px 0"></div>
-    <button class="btn btn-ghost" type="button" style="width:100%" id="mklink">Kurulumsuz destek bağlantısı oluştur</button>
-    <div class="hint" style="text-align:center">Karşı tarafa link gönder; tarayıcıda açıp ekranını paylaşsın (kurulum yok, yalnız görüntü).</div>
-    <div style="height:1px;background:var(--ud-border);margin:4px 0"></div>
-    <a href="https://github.com/mycosmosshop/uzak-destek/releases/latest/download/UzakDestekAjan.exe" download class="btn btn-ghost" style="width:100%;text-decoration:none;display:flex;align-items:center;justify-content:center">⬇ Ajanı indir (tam kontrol)</a>
-    <button class="btn btn-ghost" type="button" id="agentlinkcopy" style="width:100%">Ajan indirme linkini kopyala</button>
-    <div class="hint" style="text-align:center">Tam kontrol (fare/klavye) için: karşı taraf bu dosyayı indirip çalıştırsın, çıkan kodu sana söylesin.</div>
-    <div class="status" id="st" role="status" aria-live="polite">Ajandaki kodu girin.</div>
+    <div class="status" id="st" role="status" aria-live="polite">Kodu girip Bağlan'a basın.</div>
+
+    <div style="height:1px;background:var(--ud-border);margin:14px 0"></div>
+
+    <div style="font-weight:700;font-size:16px">Karşı tarafa göndereceklerin</div>
+    <div class="hint" style="margin-top:-6px"><b style="color:var(--ud-text)">Tam kontrol</b> (fare/klavye) için — karşı taraf indirip çalıştırsın, çıkan kodu sana söylesin:</div>
+    <button class="btn btn-ghost" type="button" style="width:100%" id="agentlinkcopy">📋 İndirme linkini kopyala (karşı tarafa gönder)</button>
+    <a href="https://mycosmosshop.github.io/uzak-destek/indir.html" target="_blank" class="hint" style="text-align:center;color:var(--ud-accent);text-decoration:none">indirme sayfasını aç →</a>
+    <div class="hint" style="margin-top:10px"><b style="color:var(--ud-text)">Sadece ekranını görmek</b> yeterliyse (kurulum/kontrol yok):</div>
+    <button class="btn btn-ghost" type="button" style="width:100%" id="mklink">Ekran paylaşım linki oluştur</button>
   </form>
 
   <!-- Destekçi: link üret + yayını izle -->
@@ -391,7 +394,7 @@ $('#mklink').onclick = async ()=>{
   dch.subscribe();
 };
 $('#linkcopy').onclick = ()=>{ navigator.clipboard.writeText($('#linkbox').value).then(()=>{ $('#linkcopy').textContent='Kopyalandı'; setTimeout(()=>$('#linkcopy').textContent='Kopyala',1500); }); };
-$('#agentlinkcopy').onclick = ()=>{ navigator.clipboard.writeText('https://github.com/mycosmosshop/uzak-destek/releases/latest/download/UzakDestekAjan.exe').then(()=>{ $('#agentlinkcopy').textContent='Kopyalandı'; setTimeout(()=>$('#agentlinkcopy').textContent='Ajan indirme linkini kopyala',1500); }); };
+$('#agentlinkcopy').onclick = ()=>{ navigator.clipboard.writeText('https://mycosmosshop.github.io/uzak-destek/indir.html').then(()=>{ $('#agentlinkcopy').textContent='✓ Kopyalandı — karşı tarafa yapıştır'; setTimeout(()=>$('#agentlinkcopy').textContent='📋 İndirme linkini kopyala (karşı tarafa gönder)',1800); }); };
 $('#linkclose').onclick = ()=>{ destekTemizle(); $('#linkview').style.display='none'; $('#connect').style.display='flex'; };
 
 // ---- Yardım alan: ?destek=<kod> ile gelen taraf ----
